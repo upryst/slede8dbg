@@ -8,9 +8,10 @@ import (
 const (
 	helpText = `Keyboard shortcuts:
 
-[green:-:b]Alt-0[-:-:-]  switch to Code
-[green:-:b]Alt-1[-:-:-]  switch to Memory
-[green:-:b]Alt-2[-:-:-]  switch to Registers
+[green:-:b]Alt-0[-:-:-]  switch to Input
+[green:-:b]Alt-1[-:-:-]  switch to Code
+[green:-:b]Alt-2[-:-:-]  switch to Memory
+[green:-:b]Alt-3[-:-:-]  switch to Registers
 [green:-:b]Alt-4[-:-:-]  switch to Output
 
 [green:-:b]F1[-:-:-]   Help screen
@@ -28,7 +29,7 @@ Press [green:-:b]Esc[-:-:-] or [green:-:b]Enter[-:-:-]
 
 const (
 	helpViewWidth  = 50
-	helpViewHeight = 19
+	helpViewHeight = 22
 )
 
 type HelpView struct {
