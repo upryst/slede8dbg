@@ -10,6 +10,10 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const (
+	defaultCycleLimit = 50000
+)
+
 func main() {
 	app := &cli.App{
 		Name:  "slede8dbg",
@@ -23,6 +27,11 @@ func main() {
 					&cli.StringFlag{
 						Name:  "input, i",
 						Usage: "hexadecimal input string (AKA SLEDE8 føde), e.g. CD21",
+					},
+					&cli.IntFlag{
+						Name:  "limit",
+						Usage: "cycle (step) limit",
+						Value: defaultCycleLimit,
 					},
 				},
 				Action: func(c *cli.Context) error {
@@ -40,7 +49,7 @@ func main() {
 						return err
 					}
 
-					debugger, err := debugger.NewUI(program, input)
+					debugger, err := debugger.NewUI(program, input, c.Int("limit"))
 					if err != nil {
 						return err
 					}

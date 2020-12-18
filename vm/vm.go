@@ -22,8 +22,9 @@ const (
 )
 
 var (
-	ErrNoMoreInput = errors.New("No more input available")
-	ErrEmptyStack  = errors.New("Stack is empty")
+	ErrNoMoreInput        = errors.New("No more input available")
+	ErrEmptyStack         = errors.New("Stack is empty")
+	ErrCycleLimitExceeded = errors.New("Cycle limit exceeded")
 )
 
 type VM struct {
@@ -40,6 +41,7 @@ type VM struct {
 	Stack  []uint16
 
 	CycleCount int
+	CycleLimit int
 
 	State     VMState
 	LastError error
@@ -48,7 +50,7 @@ type VM struct {
 	BreakPoints [MemSize / 2]bool
 }
 
-func NewVM(program, input []byte) (*VM, error) {
+func NewVM(program, input []byte, cycleLimit int) (*VM, error) {
 	r := bytes.NewReader(program)
 
 	magic := make([]byte, len(SledeHeader))
@@ -66,7 +68,8 @@ func NewVM(program, input []byte) (*VM, error) {
 	}
 
 	vm := &VM{
-		Input: input,
+		Input:      input,
+		CycleLimit: cycleLimit,
 	}
 
 	if _, err := r.Read(vm.Mem[:]); err != nil {
@@ -98,10 +101,13 @@ func (vm *VM) BreakpointSet(addr uint16) bool {
 }
 
 func (vm *VM) Step() error {
+	if vm.CycleLimit > 0 && vm.CycleCount >= vm.CycleLimit {
+		return vm.setError(ErrCycleLimitExceeded)
+	}
+
 	var nextPC *uint16
 
 	i := ParseInstruction(vm.GetWord(vm.PC))
-
 	switch i.Class {
 	case OpClassHalt:
 		vm.State = Stopped

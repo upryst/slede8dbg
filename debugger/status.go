@@ -37,8 +37,8 @@ func (sb *StatusBar) Draw(screen tcell.Screen) {
 		stateStr = fmt.Sprintf("Uknown (%d)", sb.ui.vm.State)
 	}
 
-	line := fmt.Sprintf("[ [green:-:b]State[-:-:-] %s ] [ [green:-:b]Cycles:[-:-:-] %d ]",
-		stateStr, sb.ui.vm.CycleCount)
+	line := fmt.Sprintf("[ [green:-:b]State[-:-:-] %s ] [ [green:-:b]Cycles:[-:-:-] %d / %d ]",
+		stateStr, sb.ui.vm.CycleCount, sb.ui.vm.CycleLimit)
 
 	tview.Print(screen, line, x, y, width, tview.AlignRight, 0)
 	tview.Print(screen, "Press [green:-:b]F1[-:-:-] for help", x, y, width, tview.AlignLeft, 0)

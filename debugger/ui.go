@@ -19,6 +19,7 @@ type UI struct {
 
 	program    []byte
 	inputBytes []byte
+	cycleLimit int
 
 	vm *vm.VM
 }
@@ -27,7 +28,7 @@ func (ui *UI) MainLoop() error {
 	return ui.app.Run()
 }
 
-func NewUI(program, inputBytes []byte) (*UI, error) {
+func NewUI(program, inputBytes []byte, cycleLimit int) (*UI, error) {
 	ui := &UI{
 		app: tview.NewApplication(),
 
@@ -39,9 +40,10 @@ func NewUI(program, inputBytes []byte) (*UI, error) {
 
 		program:    program,
 		inputBytes: inputBytes,
+		cycleLimit: cycleLimit,
 	}
 
-	vm, err := vm.NewVM(program, inputBytes)
+	vm, err := vm.NewVM(program, inputBytes, cycleLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +101,7 @@ func (ui *UI) RunVM() {
 }
 
 func (ui *UI) RestartVM() {
-	if newVM, err := vm.NewVM(ui.program, ui.inputBytes); err != nil {
+	if newVM, err := vm.NewVM(ui.program, ui.inputBytes, ui.cycleLimit); err != nil {
 		panic(err)
 	} else {
 		ui.vm = newVM
