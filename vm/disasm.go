@@ -16,7 +16,7 @@ func (i *Instruction) String() string {
 		return fmt.Sprintf("SETT r%d, r%d", i.Op, i.Arg1)
 
 	case OpClassFinn:
-		return fmt.Sprintf("FINN %03x", i.Addr)
+		return fmt.Sprintf("FINN 0x%03x", i.Addr)
 
 	case OpClassLoadStore:
 		if i.Op == 0 {
@@ -75,13 +75,13 @@ func (i *Instruction) String() string {
 		}
 
 	case OpClassJmp:
-		return fmt.Sprintf("HOPP %03x", i.Addr)
+		return fmt.Sprintf("HOPP 0x%03x", i.Addr)
 
 	case OpClassCondJmp:
-		return fmt.Sprintf("BHOPP %03x", i.Addr)
+		return fmt.Sprintf("BHOPP 0x%03x", i.Addr)
 
 	case OpClassCall:
-		return fmt.Sprintf("TUR %03x", i.Addr)
+		return fmt.Sprintf("TUR 0x%03x", i.Addr)
 
 	case OpClassRet:
 		return "RETUR"

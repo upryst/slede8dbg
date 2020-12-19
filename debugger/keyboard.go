@@ -20,6 +20,8 @@ func (ui *UI) HandleKeyboard(event *tcell.EventKey) *tcell.EventKey {
 		}
 	case tcell.KeyF9:
 		ui.ToggleBreakpoint()
+	case tcell.KeyEnter:
+		ui.ShowAsm()
 	}
 
 	if event.Modifiers()&tcell.ModAlt != 0 {

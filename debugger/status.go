@@ -11,7 +11,8 @@ import (
 type StatusBar struct {
 	*tview.Box
 
-	ui *UI
+	ui        *UI
+	errorText string
 }
 
 func NewStatusBar(ui *UI) *StatusBar {
@@ -19,6 +20,14 @@ func NewStatusBar(ui *UI) *StatusBar {
 		Box: tview.NewBox(),
 		ui:  ui,
 	}
+}
+
+func (sb *StatusBar) SetErrorText(str string) {
+	sb.errorText = str
+}
+
+func (sb *StatusBar) ClearErrorText() {
+	sb.SetErrorText("")
 }
 
 func (sb *StatusBar) Draw(screen tcell.Screen) {
@@ -41,5 +50,10 @@ func (sb *StatusBar) Draw(screen tcell.Screen) {
 		stateStr, sb.ui.vm.CycleCount, sb.ui.vm.CycleLimit)
 
 	tview.Print(screen, line, x, y, width, tview.AlignRight, 0)
-	tview.Print(screen, "Press [green:-:b]F1[-:-:-] for help", x, y, width, tview.AlignLeft, 0)
+
+	if sb.errorText != "" {
+		tview.Print(screen, fmt.Sprintf("[red]%s[-:-:-]", sb.errorText), x, y, width, tview.AlignLeft, 0)
+	} else {
+		tview.Print(screen, "Press [green:-:b]F1[-:-:-] for help", x, y, width, tview.AlignLeft, 0)
+	}
 }

@@ -37,8 +37,7 @@ func tokenize(s string) (op, args string, err error) {
 func parseReg(s string) (reg byte, err error) {
 	_, err = fmt.Sscanf(strings.TrimSpace(strings.ToLower(s)), "r%d", &reg)
 	if err == nil && (reg < 0 || reg > 15) {
-		return 0, errors.Errorf("")
-
+		return 0, errors.Errorf("Bad register: r%d", reg)
 	}
 	return
 }
