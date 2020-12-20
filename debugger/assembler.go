@@ -51,7 +51,7 @@ func (ui *UI) ShowAsm() {
 			av.Close()
 		case tcell.KeyEnter:
 			src := av.edit.GetText()
-			if bytecode, err := assembler.Assemble(src); err == nil {
+			if bytecode, err := assembler.AssembleLine(src); err == nil {
 				for i := range bytecode {
 					ui.vm.SetByte(uint16(i)+ui.code.offset, bytecode[i])
 				}

@@ -12,6 +12,48 @@ func TestAssemble(t *testing.T) {
 	}
 
 	tests := []testcase{
+		{`
+		SETT r11, 1
+		SETT r15, 0xff
+		`,
+			[]byte{0xb1, 0x01, 0xf1, 0xff},
+		},
+		{`	; a comment
+			SETT r11, 1
+			XELLER r0, r0
+		loop1:
+			LES r5
+			LIK r5, r10
+			BHOPP done
+			SKRIV r5
+			HOPP loop1
+
+		done:
+			STOPP
+		`,
+			[]byte{
+				0xb1, 0x01, 0x25, 0x00, 0x06, 0x05,
+				0x07, 0xa5, 0xe9, 0x00, 0x16, 0x05,
+				0x48, 0x00, 0x00, 0x00},
+		},
+	}
+
+	for _, tc := range tests {
+		if output, err := Assemble(tc.src); err != nil {
+			t.Fatal(err)
+		} else if bytes.Compare(output, tc.expected) != 0 {
+			t.Errorf("For '%s' expected %v, got %v", tc.src, tc.expected, output)
+		}
+	}
+}
+
+func TestAssembleSingleLine(t *testing.T) {
+	type testcase struct {
+		src      string
+		expected []byte
+	}
+
+	tests := []testcase{
 		// SETT regN, imm8
 		{"SETT r0, 00", []byte{0x01, 0x00}},
 		{"SETT r1, 0x11", []byte{0x11, 0x11}},
@@ -70,6 +112,8 @@ func TestAssemble(t *testing.T) {
 		{"NOPE", []byte{0x0c, 0x00}},
 		{"STOPP", []byte{0x00, 0x00}},
 
+		{`.DATA "HELLO", 0`, []byte{'H', 'E', 'L', 'L', 'O', 0}},
+
 		// Comments, padded / empty input
 		{"ULIK r13, r12 ; a comment", []byte{0x17, 0xcd}},
 		{"  RETUR", []byte{0x0b, 0x00}},
@@ -83,7 +127,7 @@ func TestAssemble(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		if output, err := Assemble(tc.src); err != nil {
+		if output, err := AssembleLine(tc.src); err != nil {
 			t.Fatal(err)
 		} else if bytes.Compare(output, tc.expected) != 0 {
 			t.Errorf("For '%s' expected %v, got %v", tc.src, tc.expected, output)

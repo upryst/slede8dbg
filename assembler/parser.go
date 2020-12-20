@@ -1,6 +1,7 @@
 package assembler
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
 	"strings"
@@ -12,21 +13,35 @@ var (
 	commentLineRe = regexp.MustCompile(`^;.*$`)
 	opRe          = regexp.MustCompile(`^(\.?[A-Za-z]+)\s*(.*)$`)
 
-	charRe = regexp.MustCompile(`'.'`)
-	hex1Re = regexp.MustCompile(`^0[xX][0-9A-Fa-f]+$`)
-	hex2Re = regexp.MustCompile(`^[0-9A-Fa-f]+[hH]$`)
+	labelDefRe = regexp.MustCompile(`^\s*([A-Za-zÆØÅæøå][A-Za-z0-9ÆØÅæøå]*):\s*$`)
+	labelRe    = regexp.MustCompile(`^([A-Za-zÆØÅæøå][A-Za-z0-9ÆØÅæøå]*)\s*$`)
+
+	charRe    = regexp.MustCompile(`'.'`)
+	hex1Re    = regexp.MustCompile(`^0[xX][0-9A-Fa-f]+$`)
+	hex2Re    = regexp.MustCompile(`^[0-9A-Fa-f]+[hH]$`)
+	decimalRe = regexp.MustCompile(`^[+-]?[0-9]+$`)
+
+	dataHex1Re    = regexp.MustCompile(`^(0[xX][0-9A-F-a-f]+\s*)`)
+	dataHex2Re    = regexp.MustCompile(`^([0-9A-F-a-f]+[hH]\s*)`)
+	dataDecimalRe = regexp.MustCompile(`^([+-]?[0-9]+\s*)`)
+	dataCharRe    = regexp.MustCompile(`^('.'\s*)`)
 )
 
-func tokenize(s string) (op, args string, err error) {
+func tokenize(s string) (label, op, args string, err error) {
 	s = strings.TrimSpace(s)
 
 	if s == "" || commentLineRe.MatchString(s) {
-		return "", "", nil
+		return "", "", "", nil
+	}
+
+	labels := labelDefRe.FindStringSubmatch(s)
+	if len(labels) == 2 {
+		return labels[1], "", "", nil
 	}
 
 	tokens := opRe.FindStringSubmatch(s)
 	if len(tokens) != 3 {
-		return "", "", errors.Errorf("Invalid expression")
+		return "", "", "", errors.Errorf("Invalid expression")
 	}
 
 	op = tokens[1]
@@ -110,28 +125,119 @@ func parseImm8(s string) (imm8 byte, err error) {
 	return
 }
 
-func parseImm12(s string) (uint16, error) {
+func parseImm12OrLabel(s string) (uint16, string, error) {
 	s = strings.TrimSpace(s)
 
 	var addr uint16
 	switch {
 	case hex1Re.MatchString(s):
 		if _, err := fmt.Sscanf(strings.ToLower(s), "0x%x", &addr); err != nil {
-			return 0, err
+			return 0, "", err
 		}
 	case hex2Re.MatchString(s):
 		if _, err := fmt.Sscanf(strings.ToLower(s), "%xh", &addr); err != nil {
-			return 0, err
+			return 0, "", err
 		}
+	case labelRe.MatchString(s):
+		return 0, s, nil
 	default:
 		if _, err := fmt.Sscanf(s, "%d", &addr); err != nil {
-			return 0, err
+			return 0, "", err
 		}
 	}
 
 	if addr > 0xfff {
-		return 0, errors.Errorf("Address out of range: 0x%x (%d)", addr, addr)
+		return 0, "", errors.Errorf("Address out of range: 0x%x (%d)", addr, addr)
 	}
 
-	return addr, nil
+	return addr, "", nil
+}
+
+func parseData(args string) ([]byte, error) {
+	var output bytes.Buffer
+
+	s := strings.TrimSpace(args)
+
+	for s != "" {
+		for s[0] == ' ' || s[0] == '\t' {
+			s = s[1:]
+		}
+
+		if s[0] == '"' {
+			s = s[1:]
+			for s != "" && s[0] != '"' {
+				if s[0] == '\\' {
+					if len(s) == 1 {
+						return nil, errors.Errorf("Bad escape sequence")
+					}
+					switch s[1] {
+					case 'n':
+						output.WriteByte('\n')
+					case 't':
+						output.WriteByte('\t')
+					case 'r':
+						output.WriteByte('\r')
+					default:
+						output.WriteByte(s[1])
+					}
+					s = s[2:]
+				} else {
+					output.WriteByte(s[0])
+					s = s[1:]
+				}
+			}
+			// Consume the double quote
+			s = s[1:]
+		} else if match := dataHex1Re.FindStringSubmatch(s); len(match) == 2 {
+			var b byte
+			if _, err := fmt.Sscanf(strings.ToLower(s), "0x%x", &b); err != nil {
+				return nil, err
+			} else {
+				output.WriteByte(b)
+				s = s[len(match[1]):]
+			}
+		} else if match := dataHex2Re.FindStringSubmatch(s); len(match) == 2 {
+			var b byte
+			if _, err := fmt.Sscanf(strings.ToLower(s), "%xh", &b); err != nil {
+				return nil, err
+			} else {
+				output.WriteByte(b)
+				s = s[len(match[1]):]
+			}
+		} else if match := dataCharRe.FindStringSubmatch(s); len(match) == 2 {
+			var b byte
+			if _, err := fmt.Sscanf(s, "'%c'", &b); err != nil {
+				return nil, err
+			} else {
+				output.WriteByte(b)
+				s = s[len(match[1]):]
+			}
+		} else if match := dataDecimalRe.FindStringSubmatch(s); len(match) == 2 {
+			var b byte
+			if _, err := fmt.Sscanf(strings.ToLower(s), "%d", &b); err != nil {
+				return nil, err
+			} else {
+				output.WriteByte(b)
+				s = s[len(match[1]):]
+			}
+		} else {
+			return nil, errors.Errorf("Unexpected .DATA sequence: %s", s)
+		}
+
+		// Skip whitespace
+		for s != "" && (s[0] == ' ' || s[0] == '\t') {
+			s = s[1:]
+		}
+
+		// Skip comma
+		if s != "" {
+			if s[0] != ',' {
+				return nil, errors.Errorf("Expected comma")
+			}
+			s = s[1:]
+		}
+
+	}
+
+	return output.Bytes(), nil
 }
