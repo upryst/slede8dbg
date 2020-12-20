@@ -113,6 +113,8 @@ func TestAssembleSingleLine(t *testing.T) {
 		{"STOPP", []byte{0x00, 0x00}},
 
 		{`.DATA "HELLO", 0`, []byte{'H', 'E', 'L', 'L', 'O', 0}},
+		{`.DATA "a ; b"`, []byte{'a', ' ', ';', ' ', 'b'}},
+		{`.DATA "a ; b" ; c`, []byte{'a', ' ', ';', ' ', 'b'}},
 
 		// Comments, padded / empty input
 		{"ULIK r13, r12 ; a comment", []byte{0x17, 0xcd}},

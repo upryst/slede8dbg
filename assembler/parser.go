@@ -45,7 +45,14 @@ func tokenize(s string) (label, op, args string, err error) {
 	}
 
 	op = tokens[1]
-	args = strings.TrimSpace(strings.SplitN(tokens[2], ";", 2)[0])
+
+	// Hacky af, but .DATA with semicolons in strings makes things go "boom",
+	// .DATA parser handles semicolons itself.
+	if strings.ToUpper(op) != ".DATA" {
+		args = strings.TrimSpace(strings.SplitN(tokens[2], ";", 2)[0])
+	} else {
+		args = tokens[2]
+	}
 	return
 }
 
@@ -187,6 +194,9 @@ func parseData(args string) ([]byte, error) {
 				}
 			}
 			// Consume the double quote
+			if s == "" {
+				return nil, errors.Errorf("Missing closing double quote")
+			}
 			s = s[1:]
 		} else if match := dataHex1Re.FindStringSubmatch(s); len(match) == 2 {
 			var b byte
@@ -229,9 +239,11 @@ func parseData(args string) ([]byte, error) {
 			s = s[1:]
 		}
 
-		// Skip comma
+		// Skip comma / handle trailing comments
 		if s != "" {
-			if s[0] != ',' {
+			if s[0] == ';' {
+				break
+			} else if s[0] != ',' {
 				return nil, errors.Errorf("Expected comma")
 			}
 			s = s[1:]

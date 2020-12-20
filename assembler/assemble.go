@@ -50,7 +50,7 @@ func Assemble(src string) ([]byte, error) {
 
 	var output bytes.Buffer
 
-	// Second pass, collect labels
+	// Second (and final) pass with known label addresses
 	for i, line := range strings.Split(src, "\n") {
 		label, mnemonic, args, err := tokenize(line)
 		if err != nil {
