@@ -18,6 +18,13 @@ $ ./slede8dbg debug ./example/example.asm # compiles it for you
 $ ./slede8dbg debug --input 9090cd219090 ./example/hello.s8
 ```
 
+Using alternative syntax for `debug`:
+```
+$ ./slede8dbg ./example/hello.s8
+$ ./slede8dbg ./example/hello.s8 f09f8e85      # with føde
+$ ./slede8dbg ./example/hello.s8 f09f8e85 2600 # and cycle limit
+```
+
 ## Assembler
 
 ```
