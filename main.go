@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/julebokk/slede8dbg/assembler"
 	"github.com/julebokk/slede8dbg/debugger"
@@ -39,10 +40,37 @@ func compileAsmFile(path string) ([]byte, error) {
 	return binary.Bytes(), nil
 }
 
+func debug(path, inputStr string, cycleLimit int) error {
+	input, err := hex.DecodeString(inputStr)
+	if err != nil {
+		return err
+	}
+
+	var binary []byte
+
+	if filepath.Ext(path) == asmExtension {
+		if binary, err = compileAsmFile(path); err != nil {
+			return err
+		}
+	} else if binary, err = ioutil.ReadFile(path); err != nil {
+		return err
+	}
+
+	debugger, err := debugger.NewUI(binary, input, cycleLimit)
+	if err != nil {
+		return err
+	}
+
+	return debugger.MainLoop()
+}
+
 func main() {
 	app := &cli.App{
 		Name:  "slede8dbg",
 		Usage: "A SLEDE8 debugger/assembler",
+		UsageText: "slede8dbg command [command options] [arguments...]\n" +
+			"   or\n" +
+			"   slede8dbg <path to .asm/.s8 path> [<input> [cycle limit]]",
 	}
 
 	app.UseShortOptionHandling = true
@@ -70,27 +98,7 @@ func main() {
 					return cli.NewExitError(".s8 / .asm path is missing", 1)
 				}
 
-				input, err := hex.DecodeString(c.String("input"))
-				if err != nil {
-					return err
-				}
-
-				var binary []byte
-
-				if filepath.Ext(c.Args().First()) == asmExtension {
-					if binary, err = compileAsmFile(c.Args().First()); err != nil {
-						return err
-					}
-				} else if binary, err = ioutil.ReadFile(c.Args().First()); err != nil {
-					return err
-				}
-
-				debugger, err := debugger.NewUI(binary, input, c.Int("limit"))
-				if err != nil {
-					return err
-				}
-
-				return debugger.MainLoop()
+				return debug(c.Args().First(), c.String("input"), c.Int("limit"))
 			},
 		},
 		{
@@ -117,6 +125,24 @@ func main() {
 				}
 			},
 		},
+	}
+
+	// Alternative syntax (slede8dbg <path> [<input> [cycle limit]])
+	app.Action = func(c *cli.Context) error {
+		if c.NArg() == 0 {
+			cli.ShowAppHelpAndExit(c, 0)
+		}
+
+		var err error
+		cycleLimit := defaultCycleLimit
+
+		if c.NArg() > 2 {
+			if cycleLimit, err = strconv.Atoi(c.Args().Get(2)); err != nil {
+				return err
+			}
+		}
+
+		return debug(c.Args().Get(0), c.Args().Get(1), cycleLimit)
 	}
 
 	if err := app.Run(os.Args); err != nil {
