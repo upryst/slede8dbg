@@ -13,8 +13,8 @@ var (
 	commentLineRe = regexp.MustCompile(`^;.*$`)
 	opRe          = regexp.MustCompile(`^(\.?[A-Za-z]+)\s*(.*)$`)
 
-	labelDefRe = regexp.MustCompile(`^\s*([A-Za-zÆØÅæøå][A-Za-z0-9ÆØÅæøå]*):\s*$`)
-	labelRe    = regexp.MustCompile(`^([A-Za-zÆØÅæøå][A-Za-z0-9ÆØÅæøå]*)\s*$`)
+	labelDefRe = regexp.MustCompile(`^\s*([A-Za-zÆØÅæøå_][A-Za-z0-9ÆØÅæøå_]*):\s*$`)
+	labelRe    = regexp.MustCompile(`^([A-Za-zÆØÅæøå_][A-Za-z0-9ÆØÅæøå_]*)\s*$`)
 
 	charRe    = regexp.MustCompile(`'.'`)
 	hex1Re    = regexp.MustCompile(`^0[xX][0-9A-Fa-f]+$`)
