@@ -51,7 +51,7 @@ func tokenize(s string) (label, op, args string, err error) {
 	if strings.ToUpper(op) != ".DATA" {
 		args = strings.TrimSpace(strings.SplitN(tokens[2], ";", 2)[0])
 	} else {
-		args = tokens[2]
+		args = strings.TrimSpace(tokens[2])
 	}
 	return
 }
