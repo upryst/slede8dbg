@@ -9,11 +9,12 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/urfave/cli/v2"
+
 	"github.com/upryst/slede8dbg/assembler"
 	"github.com/upryst/slede8dbg/debugger"
+	"github.com/upryst/slede8dbg/vga"
 	"github.com/upryst/slede8dbg/vm"
-
-	"github.com/urfave/cli/v2"
 )
 
 const (
@@ -62,6 +63,20 @@ func debug(path, inputStr string, cycleLimit int) error {
 	}
 
 	return debugger.MainLoop()
+}
+
+func vgaDemo(path string) (err error) {
+	var binary []byte
+
+	if filepath.Ext(path) == asmExtension {
+		if binary, err = compileAsmFile(path); err != nil {
+			return err
+		}
+	} else if binary, err = ioutil.ReadFile(path); err != nil {
+		return err
+	}
+
+	return vga.Main(binary)
 }
 
 func main() {
@@ -125,6 +140,36 @@ func main() {
 				}
 			},
 		},
+		{
+			Name:    "vga",
+			Aliases: []string{"v"},
+			Usage:   "vga demo tool",
+			Action: func(c *cli.Context) error {
+				if c.NArg() == 0 {
+					return cli.NewExitError(".s8 / .asm path is missing", 1)
+				}
+
+				return vgaDemo(c.Args().First())
+			},
+		},
+	}
+
+	// Alternative syntax (slede8dbg <path> [<input> [cycle limit]])
+	app.Action = func(c *cli.Context) error {
+		if c.NArg() == 0 {
+			cli.ShowAppHelpAndExit(c, 0)
+		}
+
+		var err error
+		cycleLimit := defaultCycleLimit
+
+		if c.NArg() > 2 {
+			if cycleLimit, err = strconv.Atoi(c.Args().Get(2)); err != nil {
+				return err
+			}
+		}
+
+		return debug(c.Args().Get(0), c.Args().Get(1), cycleLimit)
 	}
 
 	// Alternative syntax (slede8dbg <path> [<input> [cycle limit]])

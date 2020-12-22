@@ -48,6 +48,9 @@ type VM struct {
 
 	// Single breakpoint "covers" the whole word
 	BreakPoints [MemSize / 2]bool
+
+	IOHandler          IOHandler
+	FramebufferHandler FramebufferHandler
 }
 
 func NewVM(program, input []byte, cycleLimit int) (*VM, error) {
@@ -70,6 +73,9 @@ func NewVM(program, input []byte, cycleLimit int) (*VM, error) {
 	vm := &VM{
 		Input:      input,
 		CycleLimit: cycleLimit,
+
+		IOHandler:          dummyIOHandler{},
+		FramebufferHandler: dummyFrameBuffer{},
 	}
 
 	if _, err := r.Read(vm.Mem[:]); err != nil {
@@ -128,6 +134,10 @@ func (vm *VM) Step() error {
 			vm.SetReg(i.Arg1, vm.GetByte(vm.GetLoadStoreOffset()))
 		} else if i.Op == 1 {
 			vm.SetByte(vm.GetLoadStoreOffset(), vm.GetReg(i.Arg1))
+		} else if i.Op == 2 {
+			vm.SetReg(i.Arg1, vm.FramebufferHandler.Read(vm.GetFramebufferAddress()))
+		} else if i.Op == 3 {
+			vm.FramebufferHandler.Write(vm.GetFramebufferAddress(), vm.GetReg(i.Arg1))
 		} else {
 			return vm.setError(errors.Errorf("Unsupported load/store op %d (PC %04x)",
 				i.Op, vm.PC))
@@ -163,6 +173,12 @@ func (vm *VM) Step() error {
 			}
 		} else if i.Op == 1 {
 			vm.writeOutput(vm.GetReg(i.Arg1))
+		} else if i.Op == 2 {
+			vm.SetReg(i.Arg1, vm.IOHandler.ReadPort(vm.GetIOAddress()))
+		} else if i.Op == 3 {
+			vm.IOHandler.WritePort(vm.GetIOAddress(), vm.GetReg(i.Arg1))
+		} else if i.Op == 4 {
+			vm.FramebufferHandler.VSync()
 		} else {
 			return vm.setError(errors.Errorf("Unsupported IO op %d (PC %04x)",
 				i.Op, vm.PC))
@@ -236,6 +252,16 @@ func (vm *VM) GetWord(offset uint16) uint16 {
 }
 
 func (vm *VM) GetLoadStoreOffset() uint16 {
+	return uint16(vm.GetReg(0)) + uint16(vm.GetReg(1))<<8
+}
+
+// Just for code clarity, equivalent to GetLoadStoreOffset()
+func (vm *VM) GetIOAddress() uint16 {
+	return uint16(vm.GetReg(0)) + uint16(vm.GetReg(1))<<8
+}
+
+// Just for code clarity, equivalent to GetLoadStoreOffset()
+func (vm *VM) GetFramebufferAddress() uint16 {
 	return uint16(vm.GetReg(0)) + uint16(vm.GetReg(1))<<8
 }
 

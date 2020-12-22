@@ -23,6 +23,10 @@ func (i *Instruction) String() string {
 			return fmt.Sprintf("LAST r%d", i.Arg1)
 		} else if i.Op == 1 {
 			return fmt.Sprintf("LAGR r%d", i.Arg1)
+		} else if i.Op == 2 {
+			return fmt.Sprintf("VLAST r%d", i.Arg1)
+		} else if i.Op == 3 {
+			return fmt.Sprintf("VLAGR r%d", i.Arg1)
 		} else {
 			comment = fmt.Sprintf("unsupported load/store op %d", i.Op)
 		}
@@ -52,6 +56,10 @@ func (i *Instruction) String() string {
 			return fmt.Sprintf("LES r%d", i.Arg1)
 		} else if i.Op == 1 {
 			return fmt.Sprintf("SKRIV r%d", i.Arg1)
+		} else if i.Op == 2 {
+			return fmt.Sprintf("INN r%d", i.Arg1)
+		} else if i.Op == 3 {
+			return fmt.Sprintf("UT r%d", i.Arg1)
 		} else {
 			comment = fmt.Sprintf("unsupported IO op %d", i.Op)
 		}

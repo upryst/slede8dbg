@@ -36,13 +36,17 @@ var cmpOps = map[string]byte{
 }
 
 var loadStoreOps = map[string]byte{
-	"LAST": 0,
-	"LAGR": 1,
+	"LAST":  0,
+	"LAGR":  1,
+	"VLAST": 2,
+	"VLAGR": 3,
 }
 
 var ioOps = map[string]byte{
 	"LES":   0,
 	"SKRIV": 1,
+	"INN":   2,
+	"UT":    3,
 }
 
 func assemble(mode assemblerMode, labels map[string]uint16,
@@ -100,7 +104,7 @@ func assemble(mode assemblerMode, labels map[string]uint16,
 			return Bytecode(vm.OpClassFinn, Addr(addr)), nil
 		}
 
-	case "LAST", "LAGR":
+	case "LAST", "LAGR", "VLAST", "VLAGR":
 		if opValue, found := loadStoreOps[mnemonic]; !found {
 			panic(errors.Errorf("Unsupported Load/store op value for %s", mnemonic))
 		} else if reg, err := parseReg(args); err != nil {
@@ -118,7 +122,7 @@ func assemble(mode assemblerMode, labels map[string]uint16,
 			return Bytecode(vm.OpClassALU, Op(opValue), Arg1(reg1), Arg2(reg2)), nil
 		}
 
-	case "LES", "SKRIV":
+	case "LES", "SKRIV", "INN", "UT":
 		if opValue, found := ioOps[mnemonic]; !found {
 			panic(errors.Errorf("Unsupported IO op value for %s", mnemonic))
 		} else if reg, err := parseReg(args); err != nil {
@@ -176,6 +180,11 @@ func assemble(mode assemblerMode, labels map[string]uint16,
 			return data, nil
 		}
 
+	case "VSYNK":
+		if args != "" {
+			return nil, errors.Errorf("VSYNK can't take arguments")
+		}
+		return Bytecode(vm.OpClassIO, Op(4)), nil
 	}
 
 	if mnemonic != "" {
