@@ -1,7 +1,7 @@
 package assembler
 
 import (
-	"github.com/julebokk/slede8dbg/vm"
+	"github.com/upryst/slede8dbg/vm"
 )
 
 type bitField func(uint16) uint16

@@ -3,8 +3,9 @@ package assembler
 import (
 	"strings"
 
-	"github.com/julebokk/slede8dbg/vm"
 	"github.com/pkg/errors"
+
+	"github.com/upryst/slede8dbg/vm"
 )
 
 type assemblerMode uint64

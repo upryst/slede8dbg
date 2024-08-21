@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/julebokk/slede8dbg/vm"
 	"github.com/pkg/errors"
+
+	"github.com/upryst/slede8dbg/vm"
 )
 
 func AssembleLine(line string) ([]byte, error) {

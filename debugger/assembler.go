@@ -2,9 +2,10 @@ package debugger
 
 import (
 	"github.com/gdamore/tcell/v2"
-	"github.com/julebokk/slede8dbg/assembler"
-	"github.com/julebokk/slede8dbg/vm"
 	"github.com/rivo/tview"
+
+	"github.com/upryst/slede8dbg/assembler"
+	"github.com/upryst/slede8dbg/vm"
 )
 
 const (

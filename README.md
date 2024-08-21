@@ -1,12 +1,12 @@
 # slede8dbg
 A debugger / assembler for [SLEDE8 VM](https://github.com/PSTNorge/slede8/).
 
-![screenshot](https://raw.githubusercontent.com/julebokk/slede8dbg/main/example/slede8dbg.png)
+![screenshot](https://raw.githubusercontent.com/upryst/slede8dbg/main/example/slede8dbg.png)
 
 ## Building
 
 1. Download & install [Go](https://golang.org/doc/install).
-2. `git clone https://github.com/julebokk/slede8dbg.git`
+2. `git clone https://github.com/upryst/slede8dbg.git`
 3. `cd slede8dbg`
 4. `go build .`
 

@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/julebokk/slede8dbg/assembler"
-	"github.com/julebokk/slede8dbg/debugger"
-	"github.com/julebokk/slede8dbg/vm"
+	"github.com/upryst/slede8dbg/assembler"
+	"github.com/upryst/slede8dbg/debugger"
+	"github.com/upryst/slede8dbg/vm"
 
 	"github.com/urfave/cli/v2"
 )

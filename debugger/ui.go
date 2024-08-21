@@ -1,8 +1,9 @@
 package debugger
 
 import (
-	"github.com/julebokk/slede8dbg/vm"
 	"github.com/rivo/tview"
+
+	"github.com/upryst/slede8dbg/vm"
 )
 
 type UI struct {

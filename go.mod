@@ -1,4 +1,4 @@
-module github.com/julebokk/slede8dbg
+module github.com/upryst/slede8dbg
 
 go 1.15
 
