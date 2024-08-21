@@ -10,7 +10,8 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/paint"
 	"gioui.org/unit"
-	"github.com/julebokk/slede8dbg/vm"
+
+	"github.com/upryst/slede8dbg/vm"
 )
 
 type UI struct {
